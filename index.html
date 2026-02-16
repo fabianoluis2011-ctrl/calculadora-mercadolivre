@@ -643,13 +643,15 @@
         });
 
         senhaInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && this.value.length === 8) {
-                const senhaDigitada = this.value;
-                if (senhaDigitada === SENHA_CORRETA) {
-                    liberarAcesso();
-                } Enter também funciona!
-            }
-        });
+    if (e.key === 'Enter' && this.value.length === 8) {
+        const senhaDigitada = this.value;
+        if (senhaDigitada === SENHA_CORRETA) {
+            liberarAcesso();
+        } else {
+            mostrarErro();
+        }
+    }
+});
 
         function mostrarErro() {
             loginError.style.display = 'block';
@@ -849,3 +851,4 @@
     </script>
 </body>
 </html>
+
