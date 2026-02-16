@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Mercado Livre - Fabiano Souza</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --ml-yellow: #FFE600;
+            --ml-blue: #2D3277;
+            --ml-bg: #0f1115;
+            --ml-card: #181b22;
+            --ml-text: #f5f5f5;
+            --ml-muted: #9ca3af;
+            --ml-green: #22c55e;
+            --ml-red: #ef4444;
+            --ml-orange: #f97316;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1f2430 0, #05060a 55%, #000 100%);
+            color: var(--ml-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+            gap: 16px;
+        }
+        header {
+            text-align: center;
+            padding: 8px 0 4px;
+        }
+        header h1 {
+            font-size: 1.6rem;
+            letter-spacing: 0.04em;
+            color: var(--ml-yellow);
+            text-shadow: 0 0 18px rgba(255, 230, 0, 0.35);
+        }
+        header p {
+            font-size: 0.9rem;
+            color: var(--ml-muted);
+            margin-top: 4px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+            gap: 16px;
+            flex: 1;
+        }
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: linear-gradient(135deg, rgba(24,27,34,0.96), rgba(18,21,28,0.98));
+            border-radius: 16px;
+            padding: 16px 18px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.65);
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .card h2 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(255,230,0,0.1);
+            color: var(--ml-yellow);
+            border: 1px solid rgba(255,230,0,0.35);
+        }
+
+        .modo-toggle {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 3px;
+            background: rgba(15,23,42,0.8);
+            border: 1px solid rgba(148,163,184,0.35);
+            margin-bottom: 12px;
+        }
+        .modo-btn {
+            border: none;
+            background: transparent;
+            color: var(--ml-muted);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .modo-btn.active {
+            background: linear-gradient(135deg, var(--ml-yellow), #ffd54f);
+            color: #111827;
+            box-shadow: 0 0 14px rgba(255,230,0,0.55);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 12px;
+            margin-top: 6px;
+        }
+        @media (max-width: 700px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        label {
+            font-size: 0.75rem;
+            color: var(--ml-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        label span.primary {
+            color: #e5e7eb;
+            font-weight: 500;
+        }
+        .hint {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        input, select {
+            background: linear-gradient(135deg, #020617, #0b1220);
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            padding: 7px 10px;
+            color: var(--ml-text);
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+        input:focus, select:focus {
+            border-color: var(--ml-yellow);
+            box-shadow: 0 0 0 1px rgba(255,230,0,0.45);
+        }
+        input[readonly] {
+            opacity: 0.8;
+            border-style: dashed;
+        }
+        .input-prefix {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .input-prefix span {
+            font-size: 0.82rem;
+            color: var(--ml-muted);
+        }
+
+        .row-inline {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .row-inline > * {
+            flex: 1;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+        }
+
+        .resumo {
+            margin-top: 8px;
+            background: radial-gradient(circle at top left, rgba(255,230,0,0.16), transparent 60%);
+            border-radius: 14px;
+            padding: 10px 12px;
+            border: 1px solid rgba(148,163,184,0.28);
+        }
+        .resumo-title {
+            font-size: 0.8rem;
+            color: var(--ml-muted);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .resumo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 6px 10px;
+            font-size: 0.8rem;
+        }
+        .resumo-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+        }
+        .resumo-label {
+            color: var(--ml-muted);
+        }
+        .resumo-value {
+            font-weight: 500;
+        }
+        .resumo-value.green {
+            color: var(--ml-green);
+        }
+        .resumo-value.red {
+            color: var(--ml-red);
+        }
+        .resumo-value.orange {
+            color: var(--ml-orange);
+        }
+
+        .resultado-principal {
+            margin-top: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(37,99,235,0.2), rgba(15,23,42,0.95));
+            border: 1px solid rgba(59,130,246,0.5);
+        }
+        .resultado-principal .label {
+            font-size: 0.8rem;
+            color: var(--ml-muted);
+        }
+        .resultado-principal .value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 3px;
+            color: var(--ml-yellow);
+            text-shadow: 0 0 14px rgba(255,230,0,0.55);
+        }
+
+        .alerta {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: rgba(249,115,22,0.09);
+            border: 1px dashed rgba(249,115,22,0.65);
+            color: #fed7aa;
+        }
+
+        footer {
+            text-align: center;
+            padding: 8px 0 10px;
+            font-size: 0.75rem;
+            color: var(--ml-muted);
+            border-top: 1px solid rgba(31,41,55,0.9);
+            background: radial-gradient(circle at bottom, rgba(255,230,0,0.1), transparent 60%);
+        }
+        footer span.author {
+            color: var(--ml-yellow);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <header>
+        <h1>Calculadora Mercado Livre</h1>
+        <p>Clássico x Premium · Comissão, taxa fixa, nota fiscal e ads em um só lugar</p>
+    </header>
+
+    <div class="grid">
+        <!-- LADO ESQUERDO: ENTRADAS -->
+        <section class="card">
+            <h2>
+                Entradas
+                <span class="badge">Mercado Livre · 2026</span>
+            </h2>
+
+            <div class="modo-toggle">
+                <button id="btnModoPreco" class="modo-btn active" type="button">
+                    <span>Modo Preço</span>
+                </button>
+                <button id="btnModoLiquido" class="modo-btn" type="button">
+                    <span>Modo Líquido desejado</span>
+                </button>
+            </div>
+
+            <div class="form-grid">
+                <!-- Tipo de anúncio -->
+                <div class="field">
+                    <label>
+                        <span class="primary">Tipo de anúncio</span>
+                        <span class="hint">Clássico ou Premium</span>
+                    </label>
+                    <select id="tipoAnuncio">
+                        <option value="classico">Clássico</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+
+                <!-- Comissão editável -->
+                <div class="field">
+                    <label>
+                        <span class="primary">Comissão (%)</span>
+                        <span class="hint">Editável</span>
+                    </label>
+                    <div class="input-prefix">
+                        <input type="number" id="comissao" step="0.1" value="14">
+                        <span>%</span>
+                    </div>
+                </div>
+
+                <!-- Preço de venda (Modo Preço) -->
+                <div class="field" id="campoPrecoVenda">
+                    <label>
+                        <span class="primary">Preço de venda</span>
+                        <span class="hint">Valor que você cobra</span>
+                    </label>
+                    <div class="input-prefix">
+                        <span>R$</span>
+                        <input type="number" id="precoVenda" step="0.01" value="79">
+                    </div>
+                </div>
+
+                <!-- Lucro líquido desejado (Modo Líquido) -->
+                <div class="field" id="campoLucroDesejado" style="display:none;">
+                    <label>
+                        <span class="primary">Lucro líquido desejado</span>
+                        <span class="hint">Depois de tudo</span>
+                    </label>
+                    <div class="input-prefix">
+                        <span>R$</span>
+                        <input type="number" id="lucroDesejado" step="0.01" value="30">
+                    </div>
+                </div>
+
+                <!-- Custo produto -->
+                <div class="field">
+                    <label>
+                        <span class="primary">Custo do produto</span>
+                    </label>
+                    <div class="input-prefix">
+                        <span>R$</span>
+                        <input type="number" id="custoProduto" step="0.01" value="30">
+                    </div>
+                </div>
+
+                <!-- Percentual nota fiscal -->
+                <div class="field">
+                    <label>
+                        <span class="primary">% Nota fiscal</span>
+                        <span class="hint">sobre o preço</span>
+                    </label>
+                    <div class="input-prefix">
+                        <input type="number" id="percentualNF" step="0.1" value="6">
+                        <span>%</span>
+                    </div>
+                </div>
+
+                <!-- ADS -->
+                <div class="field">
+                    <label>
+                        <span class="primary">Tem Ads?</span>
+                        <span class="hint">% sobre o preço</span>
+                    </label>
+                    <div class="row-inline">
+                        <div class="input-prefix">
+                            <input type="number" id="percentualAds" step="0.1" value="0">
+                            <span>%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Taxa fixa / frete -->
+                <div class="field">
+                    <label>
+                        <span class="primary">Taxa fixa / Frete</span>
+                        <span class="hint">Regra dos R$ 79</span>
+                    </label>
+                    <div class="input-prefix">
+                        <span>R$</span>
+                        <input type="number" id="taxaFixa" step="0.01" value="6.50" readonly>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="usarFreteManual">
+                        <label for="usarFreteManual">
+                            <span class="hint">Acima de R$ 79 (usar frete manual)</span>
+                        </label>
+                    </div>
+                    <div class="input-prefix" id="campoFreteManual" style="margin-top:4px; display:none;">
+                        <span>R$</span>
+                        <input type="number" id="freteManual" step="0.01" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="alerta" id="mensagemAlerta"></div>
+        </section>
+
+        <!-- LADO DIREITO: RESULTADOS -->
+        <section class="card">
+            <h2>
+                Resultado e Prova Real
+                <span class="badge">Valor que volta para você</span>
+            </h2>
+
+            <div class="resultado-principal">
+                <div class="label" id="labelResultadoPrincipal">Você RECEBE líquido (Modo Preço):</div>
+                <div class="value" id="valorResultadoPrincipal">R$ 0,00</div>
+            </div>
+
+            <div class="resumo">
+                <div class="resumo-title">
+                    <span>Resumo da venda</span>
+                    <span id="tagTipoAnuncio">Clássico · 14%</span>
+                </div>
+                <div class="resumo-grid">
+                    <div class="resumo-item">
+                        <span class="resumo-label">Preço de venda</span>
+                        <span class="resumo-value" id="rPrecoVenda">R$ 0,00</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Comissão ML</span>
+                        <span class="resumo-value red" id="rComissao">R$ 0,00</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Taxa fixa / frete</span>
+                        <span class="resumo-value red" id="rTaxaFixa">R$ 0,00</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Nota fiscal</span>
+                        <span class="resumo-value red" id="rNF">R$ 0,00</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Ads</span>
+                        <span class="resumo-value orange" id="rAds">R$ 0,00</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Custo produto</span>
+                        <span class="resumo-value red" id="rCustoProduto">R$ 0,00</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Você recebe líquido</span>
+                        <span class="resumo-value green" id="rLiquido">R$ 0,00</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Margem sobre venda</span>
+                        <span class="resumo-value" id="rMargem">0,0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<footer>
+    Desenvolvido por <span class="author">Fabiano Souza</span> · Calculadora de Precificação Mercado Livre
+</footer>
+
+<script>
+(function() {
+    const modo = {
+        PRECO: 'preco',
+        LIQUIDO: 'liquido'
+    };
+    let modoAtual = modo.PRECO;
+
+    const el = id => document.getElementById(id);
+
+    function formatMoney(v) {
+        if (isNaN(v) || !isFinite(v)) v = 0;
+        return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calcular() {
+        const tipoAnuncio = el('tipoAnuncio').value;
+        let comissaoPercent = parseFloat(el('comissao').value || 0) / 100;
+        let precoVenda = parseFloat(el('precoVenda').value || 0);
+        const lucroDesejado = parseFloat(el('lucroDesejado').value || 0);
+        const custoProduto = parseFloat(el('custoProduto').value || 0);
+        const percNF = parseFloat(el('percentualNF').value || 0) / 100;
+        const percAds = parseFloat(el('percentualAds').value || 0) / 100;
+        const usarFreteManual = el('usarFreteManual').checked;
+        let taxaFixaCampo = parseFloat(el('taxaFixa').value || 0);
+        const freteManual = parseFloat(el('freteManual').value || 0);
+
+        // Ajusta comissão default conforme tipo
+        if (!el('comissao').dataset.userEdited) {
+            if (tipoAnuncio === 'classico') {
+                comissaoPercent = 0.14;
+                el('comissao').value = 14;
+            } else {
+                comissaoPercent = 0.19;
+                el('comissao').value = 19;
+            }
+        }
+
+        // Lógica da taxa fixa / frete:
+        // - Se preço <= 79 e NÃO marcado frete manual: considera taxa fixa padrão (6,50 ou valor que você ajustar).
+        // - Se preço > 79 OU marcado frete manual: não aplica taxa fixa automática, usa freteManual.
+        let taxaFixa = 0;
+        let alerta = '';
+
+        if (modoAtual === modo.PRECO) {
+            // Modo parte do preço de venda
+            if (precoVenda <= 79 && !usarFreteManual) {
+                taxaFixa = taxaFixaCampo;
+                el('taxaFixa').readOnly = true;
+                alerta = 'Produto até R$ 79: aplicando taxa fixa padrão. Se quiser usar frete manual, marque a opção.';
+            } else {
+                taxaFixa = usarFreteManual ? freteManual : 0;
+                el('taxaFixa').readOnly = true;
+                alerta = 'Produto acima de R$ 79 ou frete manual ativo: não há taxa fixa padrão, use o campo de frete manual.';
+            }
+
+            const valorNF = precoVenda * percNF;
+            const valorAds = precoVenda * percAds;
+            const comissao = precoVenda * comissaoPercent;
+
+            const liquido = precoVenda - comissao - taxaFixa - valorNF - valorAds - custoProduto;
+            const margem = precoVenda > 0 ? (liquido / precoVenda) * 100 : 0;
+
+            el('labelResultadoPrincipal').textContent = 'Você RECEBE líquido (Modo Preço):';
+            el('valorResultadoPrincipal').textContent = formatMoney(liquido);
+
+            el('rPrecoVenda').textContent = formatMoney(precoVenda);
+            el('rComissao').textContent = formatMoney(comissao);
+            el('rTaxaFixa').textContent = formatMoney(taxaFixa);
+            el('rNF').textContent = formatMoney(valorNF);
+            el('rAds').textContent = formatMoney(valorAds);
+            el('rCustoProduto').textContent = formatMoney(custoProduto);
+            el('rLiquido').textContent = formatMoney(liquido);
+            el('rMargem').textContent = margem.toFixed(1).replace('.', ',') + '%';
+        } else {
+            // Modo parte do lucro líquido desejado e resolve o preço
+            // Preço deve satisfazer:
+            // LucroDesejado = Preco*(1 - comissaoPercent - percNF - percAds) - taxaFixa - custoProduto
+            // => Preco = (LucroDesejado + taxaFixa + custoProduto) / (1 - comissaoPercent - percNF - percAds)
+            // Mas taxaFixa depende de Preco, então usamos uma aproximação iterativa simples.
+
+            let precoEst = Math.max(lucroDesejado + custoProduto, 1);
+            for (let i = 0; i < 20; i++) {
+                if (precoEst <= 79 && !usarFreteManual) {
+                    taxaFixa = taxaFixaCampo;
+                } else {
+                    taxaFixa = usarFreteManual ? freteManual : 0;
+                }
+                const base = 1 - comissaoPercent - percNF - percAds;
+                if (base <= 0.01) break;
+                const novoPreco = (lucroDesejado + taxaFixa + custoProduto) / base;
+                if (Math.abs(novoPreco - precoEst) < 0.01) {
+                    precoEst = novoPreco;
+                    break;
+                }
+                precoEst = novoPreco;
+            }
+
+            precoVenda = precoEst;
+
+            if (precoVenda <= 79 && !usarFreteManual) {
+                taxaFixa = taxaFixaCampo;
+                alerta = 'Produto até R$ 79: aplicando taxa fixa padrão na conta reversa.';
+            } else {
+                taxaFixa = usarFreteManual ? freteManual : 0;
+                alerta = 'Produto acima de R$ 79 ou frete manual ativo na conta reversa.';
+            }
+
+            const valorNF = precoVenda * percNF;
+            const valorAds = precoVenda * percAds;
+            const comissao = precoVenda * comissaoPercent;
+            const liquido = precoVenda - comissao - taxaFixa - valorNF - valorAds - custoProduto;
+            const margem = precoVenda > 0 ? (liquido / precoVenda) * 100 : 0;
+
+            el('labelResultadoPrincipal').textContent = 'Preço sugerido para atingir o lucro líquido desejado:';
+            el('valorResultadoPrincipal').textContent = formatMoney(precoVenda);
+
+            el('rPrecoVenda').textContent = formatMoney(precoVenda);
+            el('rComissao').textContent = formatMoney(comissao);
+            el('rTaxaFixa').textContent = formatMoney(taxaFixa);
+            el('rNF').textContent = formatMoney(valorNF);
+            el('rAds').textContent = formatMoney(valorAds);
+            el('rCustoProduto').textContent = formatMoney(custoProduto);
+            el('rLiquido').textContent = formatMoney(liquido);
+            el('rMargem').textContent = margem.toFixed(1).replace('.', ',') + '%';
+        }
+
+        el('mensagemAlerta').textContent = alerta;
+
+        const tag = tipoAnuncio === 'classico'
+            ? 'Clássico · ' + (comissaoPercent * 100).toFixed(1).replace('.', ',') + '%'
+            : 'Premium · ' + (comissaoPercent * 100).toFixed(1).replace('.', ',') + '%';
+        el('tagTipoAnuncio').textContent = tag;
+    }
+
+    function trocarModo(novoModo) {
+        modoAtual = novoModo;
+        if (novoModo === modo.PRECO) {
+            el('btnModoPreco').classList.add('active');
+            el('btnModoLiquido').classList.remove('active');
+            el('campoPrecoVenda').style.display = '';
+            el('campoLucroDesejado').style.display = 'none';
+        } else {
+            el('btnModoPreco').classList.remove('active');
+            el('btnModoLiquido').classList.add('active');
+            el('campoPrecoVenda').style.display = 'none';
+            el('campoLucroDesejado').style.display = '';
+        }
+        calcular();
+    }
+
+    function setupEventos() {
+        ['tipoAnuncio','precoVenda','lucroDesejado','custoProduto',
+         'percentualNF','percentualAds','taxaFixa','usarFreteManual','freteManual',
+         'comissao'].forEach(id => {
+            el(id).addEventListener('input', () => {
+                if (id === 'comissao') {
+                    el('comissao').dataset.userEdited = '1';
+                }
+                if (id === 'usarFreteManual') {
+                    const show = el('usarFreteManual').checked;
+                    el('campoFreteManual').style.display = show ? 'flex' : 'none';
+                }
+                calcular();
+            });
+        });
+
+        el('btnModoPreco').addEventListener('click', () => trocarModo(modo.PRECO));
+        el('btnModoLiquido').addEventListener('click', () => trocarModo(modo.LIQUIDO));
+    }
+
+    setupEventos();
+    calcular();
+})();
+</script>
+</body>
+</html>
